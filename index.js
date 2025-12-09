@@ -27,7 +27,7 @@ db.connect((err) => {
 });
 
 app.get("/users", (req, res) => {
-  db.query("SELECT nama, email FROM users LIMIT 1", (err, result) => {
+  db.query("SELECT name, email FROM users LIMIT 1", (err, result) => {
     if (err) {
       return res.status(500).json({ error: "Database error", details: err });
     }
