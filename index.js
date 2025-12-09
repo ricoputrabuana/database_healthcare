@@ -37,17 +37,17 @@ app.get("/users", (req, res) => {
     }
 
     res.json({
-      name: result[0].nama,
+      name: result[0].name,
       email: result[0].email
     });
   });
 });
 // Insert new user
 app.post('/users', (req, res) => {
-    const { nama, email } = req.body;
+    const { name, email } = req.body;
 
     db.query(
-        "INSERT INTO users (nama, email) VALUES (?, ?)",
+        "INSERT INTO users (name, email) VALUES (?, ?)",
         [nama, email],
         (err, result) => {
             if (err) return res.status(500).send(err);
