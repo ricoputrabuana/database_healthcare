@@ -26,14 +26,22 @@ db.connect((err) => {
     console.log("MySQL Connected!");
 });
 
-// Get all users
-app.get('/users', (req, res) => {
-    db.query("SELECT * FROM users", (err, result) => {
-        if (err) return res.status(500).send(err);
-        res.json(result);
-    });
-});
+app.get("/users", (req, res) => {
+  db.query("SELECT nama, email FROM users LIMIT 1", (err, result) => {
+    if (err) {
+      return res.status(500).json({ error: "Database error", details: err });
+    }
 
+    if (result.length === 0) {
+      return res.json({ name: "No User Found", email: "-" });
+    }
+
+    res.json({
+      name: result[0].nama,
+      email: result[0].email
+    });
+  });
+});
 // Insert new user
 app.post('/users', (req, res) => {
     const { nama, email } = req.body;
