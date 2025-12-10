@@ -26,23 +26,6 @@ db.connect((err) => {
 });
 
 /* ================================
-   GET ONE USER (TEST ENDPOINT)
-================================ */
-app.get("/users", (req, res) => {
-    db.query("SELECT name, email FROM users LIMIT 1", (err, result) => {
-        if (err) {
-            return res.status(500).json({ error: "Database error", details: err });
-        }
-
-        if (result.length === 0) {
-            return res.json({ name: "No User Found", email: "-" });
-        }
-
-        res.json(result[0]);
-    });
-});
-
-/* ================================
         REGISTER (MANUAL)
 ================================ */
 app.post('/users', (req, res) => {
