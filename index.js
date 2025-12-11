@@ -31,6 +31,10 @@ db.connect((err) => {
 app.post('/users', (req, res) => {
     const { name, email, password } = req.body;
 
+      if (!password || password.trim() === "") {
+        return res.status(400).json({ error: "Password wajib diisi" });
+      }
+
     db.query(
         "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
         [name, email, password],
@@ -172,17 +176,3 @@ const port = process.env.PORT || 8080;
 app.listen(port, "0.0.0.0", () => {
     console.log(`Server running on port ${port}`);
 });
-
-app.get('/fix_password_nullable', (req, res) => {
-    const sql = "ALTER TABLE users MODIFY password VARCHAR(255) NULL";
-
-    db.query(sql, (err, result) => {
-        if (err) return res.status(500).json({ error: err });
-
-        res.json({
-            success: true,
-            message: "Kolom password berhasil diubah menjadi NULLABLE"
-        });
-    });
-});
-
