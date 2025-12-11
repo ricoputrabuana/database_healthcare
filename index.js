@@ -96,13 +96,17 @@ app.post("/login", (req, res) => {
             LOGIN GOOGLE
 ================================ */
 app.post("/google_login", (req, res) => {
+    console.log("GOOGLE LOGIN BODY:", req.body);
     const { name, email } = req.body;
 
     db.query(
         "SELECT * FROM users WHERE email = ?",
         [email],
         (err, result) => {
-            if (err) return res.status(500).json(err);
+            if (err) {
+                console.log("SELECT ERROR:", err);
+                return res.status(500).json(err);
+            }
 
             // CASE 1 — Email belum terdaftar → Buat akun Google
             if (result.length === 0) {
