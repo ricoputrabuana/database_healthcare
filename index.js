@@ -114,7 +114,10 @@ app.post("/google_login", (req, res) => {
                     "INSERT INTO users (name, email, password) VALUES (?, ?, NULL)",
                     [name, email],
                     (err2, result2) => {
-                        if (err2) return res.status(500).json(err2);
+                        if (err2) {
+                            console.log("INSERT ERROR:", err2);
+                            return res.status(500).json(err2);
+                        }
 
                         return res.json({
                             success: true,
