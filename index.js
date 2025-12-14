@@ -171,6 +171,47 @@ app.get('/users/:id', (req, res) => {
     );
 });
 
+app.get("/dev/init-history-tables", async (req, res) => {
+  try {
+    const createViewedDiseases = `
+      CREATE TABLE IF NOT EXISTS viewed_diseases (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        disease_name TEXT NOT NULL,
+        UNIQUE KEY unique_user_disease (user_id, disease_name),
+        CONSTRAINT fk_viewed_diseases_user
+          FOREIGN KEY (user_id) REFERENCES users(id)
+          ON DELETE CASCADE
+      );
+    `;
+
+    const createViewedArticles = `
+      CREATE TABLE IF NOT EXISTS viewed_articles (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        article_title TEXT NOT NULL,
+        UNIQUE KEY unique_user_article (user_id, article_title),
+        CONSTRAINT fk_viewed_articles_user
+          FOREIGN KEY (user_id) REFERENCES users(id)
+          ON DELETE CASCADE
+      );
+    `;
+
+    await db.query(createViewedDiseases);
+    await db.query(createViewedArticles);
+
+    res.json({
+      message: "History tables created successfully",
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      error: err.message,
+    });
+  }
+});
+
+
 const port = process.env.PORT || 8080;
 
 app.listen(port, "0.0.0.0", () => {
