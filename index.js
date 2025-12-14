@@ -171,7 +171,7 @@ app.get('/users/:id', (req, res) => {
     );
 });
 
-app.delete("/dev/drop-viewed-articles", (req, res) => {
+app.get("/dev/drop-viewed-articles", (req, res) => {
   db.query(
     "DROP TABLE IF EXISTS viewed_articles",
     (err) => {
