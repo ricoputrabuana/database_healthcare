@@ -171,6 +171,24 @@ app.get('/users/:id', (req, res) => {
     );
 });
 
+app.delete("/dev/drop-viewed-articles", (req, res) => {
+  db.query(
+    "DROP TABLE IF EXISTS viewed_articles",
+    (err) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json(err);
+      }
+
+      res.json({
+        success: true,
+        message: "Table viewed_articles berhasil di-drop"
+      });
+    }
+  );
+});
+
+
 const port = process.env.PORT || 8080;
 
 app.listen(port, "0.0.0.0", () => {
