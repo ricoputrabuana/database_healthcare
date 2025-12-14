@@ -197,8 +197,9 @@ app.get("/dev/init-history-tables", async (req, res) => {
       );
     `;
 
-    await db.query(createViewedDiseases);
-    await db.query(createViewedArticles);
+    await db.promise().query(createViewedDiseases);
+    await db.promise().query(createViewedArticles);
+
 
     res.json({
       message: "History tables created successfully",
