@@ -171,41 +171,62 @@ app.get('/users/:id', (req, res) => {
     );
 });
 
-app.get("/dev/init-history-tables", async (req, res) => {
-  try {
-    const createViewedDiseases = `
-      CREATE TABLE IF NOT EXISTS viewed_diseases (
-        id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-        user_id BIGINT UNSIGNED NOT NULL,
-        disease_name VARCHAR(255) NOT NULL,
-        UNIQUE KEY unique_user_disease (user_id, disease_name),
-        CONSTRAINT fk_viewed_diseases_user
-          FOREIGN KEY (user_id) REFERENCES users(id)
-          ON DELETE CASCADE
-      );
-    `;
+// ================================
+// SAVE VIEWED DISEASE
+// ================================
+app.post("/viewed-diseases", (req, res) => {
+  const { user_id, disease_name } = req.body;
 
-    const createViewedArticles = `
-      CREATE TABLE IF NOT EXISTS viewed_articles (
-        id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-        user_id BIGINT UNSIGNED NOT NULL,
-        article_title VARCHAR(255) NOT NULL,
-        UNIQUE KEY unique_user_article (user_id, article_title),
-        CONSTRAINT fk_viewed_articles_user
-          FOREIGN KEY (user_id) REFERENCES users(id)
-          ON DELETE CASCADE
-      );
-    `;
-
-    await db.promise().query(createViewedDiseases);
-    await db.promise().query(createViewedArticles);
-
-    res.json({ message: "History tables created successfully" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
-  }
+  db.query(
+    `INSERT IGNORE INTO viewed_diseases (user_id, disease_name)
+     VALUES (?, ?)`,
+    [user_id, disease_name],
+    (err) => {
+      if (err) return res.status(500).json(err);
+      res.json({ success: true });
+    }
+  );
 });
+
+// ================================
+// SAVE VIEWED ARTICLE
+// ================================
+app.post("/viewed-articles", (req, res) => {
+  const { user_id, article_title } = req.body;
+
+  db.query(
+    `INSERT IGNORE INTO viewed_articles (user_id, article_title)
+     VALUES (?, ?)`,
+    [user_id, article_title],
+    (err) => {
+      if (err) return res.status(500).json(err);
+      res.json({ success: true });
+    }
+  );
+});
+
+app.get("/users/:id/history", (req, res) => {
+  const userId = req.params.id;
+
+  const diseasesQuery =
+    "SELECT disease_name FROM viewed_diseases WHERE user_id = ?";
+  const articlesQuery =
+    "SELECT article_title FROM viewed_articles WHERE user_id = ?";
+
+  db.query(diseasesQuery, [userId], (err, diseases) => {
+    if (err) return res.status(500).json(err);
+
+    db.query(articlesQuery, [userId], (err2, articles) => {
+      if (err2) return res.status(500).json(err2);
+
+      res.json({
+        diseases: diseases.map(d => d.disease_name),
+        articles: articles.map(a => a.article_title),
+      });
+    });
+  });
+});
+
 
 const port = process.env.PORT || 8080;
 
