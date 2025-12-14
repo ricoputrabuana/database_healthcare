@@ -175,8 +175,8 @@ app.get("/dev/init-history-tables", async (req, res) => {
   try {
     const createViewedDiseases = `
       CREATE TABLE IF NOT EXISTS viewed_diseases (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        user_id INT NOT NULL,
+        id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        user_id BIGINT UNSIGNED NOT NULL,
         disease_name VARCHAR(255) NOT NULL,
         UNIQUE KEY unique_user_disease (user_id, disease_name),
         CONSTRAINT fk_viewed_diseases_user
@@ -187,8 +187,8 @@ app.get("/dev/init-history-tables", async (req, res) => {
 
     const createViewedArticles = `
       CREATE TABLE IF NOT EXISTS viewed_articles (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        user_id INT NOT NULL,
+        id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        user_id BIGINT UNSIGNED NOT NULL,
         article_title VARCHAR(255) NOT NULL,
         UNIQUE KEY unique_user_article (user_id, article_title),
         CONSTRAINT fk_viewed_articles_user
@@ -206,8 +206,6 @@ app.get("/dev/init-history-tables", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
-
 
 const port = process.env.PORT || 8080;
 
