@@ -177,7 +177,7 @@ app.get("/dev/init-history-tables", async (req, res) => {
       CREATE TABLE IF NOT EXISTS viewed_diseases (
         id INT AUTO_INCREMENT PRIMARY KEY,
         user_id INT NOT NULL,
-        disease_name TEXT NOT NULL,
+        disease_name VARCHAR(255) NOT NULL,
         UNIQUE KEY unique_user_disease (user_id, disease_name),
         CONSTRAINT fk_viewed_diseases_user
           FOREIGN KEY (user_id) REFERENCES users(id)
@@ -189,7 +189,7 @@ app.get("/dev/init-history-tables", async (req, res) => {
       CREATE TABLE IF NOT EXISTS viewed_articles (
         id INT AUTO_INCREMENT PRIMARY KEY,
         user_id INT NOT NULL,
-        article_title TEXT NOT NULL,
+        article_title VARCHAR(255) NOT NULL,
         UNIQUE KEY unique_user_article (user_id, article_title),
         CONSTRAINT fk_viewed_articles_user
           FOREIGN KEY (user_id) REFERENCES users(id)
@@ -200,17 +200,13 @@ app.get("/dev/init-history-tables", async (req, res) => {
     await db.promise().query(createViewedDiseases);
     await db.promise().query(createViewedArticles);
 
-
-    res.json({
-      message: "History tables created successfully",
-    });
+    res.json({ message: "History tables created successfully" });
   } catch (err) {
     console.error(err);
-    res.status(500).json({
-      error: err.message,
-    });
+    res.status(500).json({ error: err.message });
   }
 });
+
 
 
 const port = process.env.PORT || 8080;
