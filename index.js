@@ -103,6 +103,13 @@ app.post("/google_login", (req, res) => {
     console.log("GOOGLE LOGIN BODY:", req.body);
     const { name, email } = req.body;
 
+    if (!email) {
+        return res.status(400).json({
+            success: false,
+            message: "Email Google tidak ditemukan"
+        });
+    }
+
     db.query(
         "SELECT * FROM users WHERE email = ?",
         [email],
