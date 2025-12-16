@@ -133,8 +133,13 @@ app.post("/google_login", (req, res) => {
                         return res.json({
                             success: true,
                             message: "Akun Google berhasil dibuat",
-                            id: result2.insertId
+                            user: {
+                                id: result2.insertId,
+                                name,
+                                email
+                            }
                         });
+
                     }
                 );
             }
