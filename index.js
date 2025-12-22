@@ -244,23 +244,6 @@ app.get("/users/:id/history", (req, res) => {
   });
 });
 
-DROP TABLE IF EXISTS viewed_diseases;
-
-CREATE TABLE viewed_diseases (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-
-  user_id INT NOT NULL,
-  disease_name TEXT NOT NULL,
-
-  viewed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-  UNIQUE KEY unique_user_disease (user_id, disease_name(191)),
-
-  FOREIGN KEY (user_id) REFERENCES users(id)
-    ON DELETE CASCADE
-);
-
-
 const port = process.env.PORT || 8080;
 
 app.listen(port, "0.0.0.0", () => {
