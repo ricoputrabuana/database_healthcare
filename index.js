@@ -18,6 +18,9 @@ const db = mysql.createPool({
   queueLimit: 0
 });
 
+ALTER TABLE viewed_diseases
+ADD COLUMN disease_slug VARCHAR(255);
+
 /* ================================
         REGISTER (MANUAL)
 ================================ */
@@ -179,31 +182,26 @@ app.get('/users/:id', (req, res) => {
     );
 });
 
-// ================================
-// SAVE VIEWED DISEASE
-// ================================
 app.post("/viewed-diseases", (req, res) => {
-  const { user_id, disease_name } = req.body;
+  const { user_id, disease_name, disease_slug } = req.body;
 
-  if (!user_id || !disease_name) {
+  if (!user_id || !disease_name || !disease_slug) {
     return res.status(400).json({ message: "Data tidak lengkap" });
   }
 
   db.query(
-    `INSERT IGNORE INTO viewed_diseases (user_id, disease_name)
-     VALUES (?, ?)`,
-    [user_id, disease_name.trim()],
-    (err, result) => {
+    `INSERT IGNORE INTO viewed_diseases (user_id, disease_name, disease_slug)
+     VALUES (?, ?, ?)`,
+    [user_id, disease_name.trim(), disease_slug.trim()],
+    (err) => {
       if (err) {
         console.error("SAVE DISEASE ERROR:", err);
         return res.status(500).json(err);
       }
-
       res.json({ success: true });
     }
   );
 });
-
 
 // ================================
 // SAVE VIEWED ARTICLE
