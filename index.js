@@ -18,6 +18,17 @@ const db = mysql.createPool({
   queueLimit: 0
 });
 
+const mysqlPromise = require("mysql2/promise");
+
+const migrateDb = mysqlPromise.createPool({
+  host: process.env.MYSQLHOST,
+  user: process.env.MYSQLUSER,
+  password: process.env.MYSQLPASSWORD,
+  database: process.env.MYSQLDATABASE,
+  port: Number(process.env.MYSQLPORT),
+});
+
+
 
 app.post('/users', (req, res) => {
     const { name, email, password } = req.body;
@@ -240,20 +251,31 @@ app.get("/users/:id/history", (req, res) => {
   });
 });
 
-db.query(`
-  ALTER TABLE viewed_diseases
-  ADD COLUMN disease_slug VARCHAR(255)
-`, (err) => {
-  if (err) return res.status(500).json(err);
+app.get("/__migrate_viewed_diseases__", async (req, res) => {
+  try {
+    await migrateDb.query(`
+      ALTER TABLE viewed_diseases
+      ADD COLUMN disease_slug VARCHAR(255)
+    `);
 
-  db.query(`
-    ALTER TABLE viewed_diseases
-    ADD UNIQUE KEY uniq_user_disease (user_id, disease_slug)
-  `, (err2) => {
-    if (err2) return res.status(500).json(err2);
-    res.json({ success: true });
-  });
+    await migrateDb.query(`
+      ALTER TABLE viewed_diseases
+      ADD UNIQUE KEY uniq_user_disease (user_id, disease_slug)
+    `);
+
+    res.json({
+      success: true,
+      message: "Migration success"
+    });
+  } catch (err) {
+    console.error("MIGRATION ERROR:", err);
+    res.status(500).json({
+      error: err.message,
+      sqlMessage: err.sqlMessage,
+    });
+  }
 });
+
 
 const port = process.env.PORT || 8080;
 
