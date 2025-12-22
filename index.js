@@ -185,16 +185,25 @@ app.get('/users/:id', (req, res) => {
 app.post("/viewed-diseases", (req, res) => {
   const { user_id, disease_name } = req.body;
 
+  if (!user_id || !disease_name) {
+    return res.status(400).json({ message: "Data tidak lengkap" });
+  }
+
   db.query(
     `INSERT IGNORE INTO viewed_diseases (user_id, disease_name)
      VALUES (?, ?)`,
-    [user_id, disease_name],
-    (err) => {
-      if (err) return res.status(500).json(err);
+    [user_id, disease_name.trim()],
+    (err, result) => {
+      if (err) {
+        console.error("SAVE DISEASE ERROR:", err);
+        return res.status(500).json(err);
+      }
+
       res.json({ success: true });
     }
   );
 });
+
 
 // ================================
 // SAVE VIEWED ARTICLE
@@ -234,6 +243,22 @@ app.get("/users/:id/history", (req, res) => {
     });
   });
 });
+
+DROP TABLE IF EXISTS viewed_diseases;
+
+CREATE TABLE viewed_diseases (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+
+  user_id INT NOT NULL,
+  disease_name TEXT NOT NULL,
+
+  viewed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  UNIQUE KEY unique_user_disease (user_id, disease_name(191)),
+
+  FOREIGN KEY (user_id) REFERENCES users(id)
+    ON DELETE CASCADE
+);
 
 
 const port = process.env.PORT || 8080;
