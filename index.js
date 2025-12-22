@@ -253,20 +253,36 @@ app.get("/users/:id/history", (req, res) => {
 
 app.get("/__migrate_viewed_diseases__", async (req, res) => {
   try {
-    await migrateDb.query(`
-      ALTER TABLE viewed_diseases
-      ADD COLUMN disease_slug VARCHAR(255)
+    // 1️⃣ CEK APAKAH KOLOM SUDAH ADA
+    const [columns] = await migrateDb.query(`
+      SHOW COLUMNS FROM viewed_diseases LIKE 'disease_slug'
     `);
 
-    await migrateDb.query(`
-      ALTER TABLE viewed_diseases
-      ADD UNIQUE KEY uniq_user_disease (user_id, disease_slug)
+    if (columns.length === 0) {
+      await migrateDb.query(`
+        ALTER TABLE viewed_diseases
+        ADD COLUMN disease_slug VARCHAR(255)
+      `);
+    }
+
+    // 2️⃣ CEK UNIQUE INDEX
+    const [indexes] = await migrateDb.query(`
+      SHOW INDEX FROM viewed_diseases
+      WHERE Key_name = 'uniq_user_disease'
     `);
+
+    if (indexes.length === 0) {
+      await migrateDb.query(`
+        ALTER TABLE viewed_diseases
+        ADD UNIQUE KEY uniq_user_disease (user_id, disease_slug)
+      `);
+    }
 
     res.json({
       success: true,
-      message: "Migration success"
+      message: "Migration checked & completed safely"
     });
+
   } catch (err) {
     console.error("MIGRATION ERROR:", err);
     res.status(500).json({
@@ -275,7 +291,6 @@ app.get("/__migrate_viewed_diseases__", async (req, res) => {
     });
   }
 });
-
 
 const port = process.env.PORT || 8080;
 
