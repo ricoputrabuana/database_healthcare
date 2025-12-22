@@ -21,59 +21,6 @@ const db = mysql.createPool({
   queueLimit: 0
 });
 
-/* ================================
-          CREATE TABLES
-================================ */
-function createTables() {
-  const usersTable = `
-    CREATE TABLE IF NOT EXISTS users (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      name VARCHAR(255) NOT NULL,
-      email VARCHAR(255) NOT NULL UNIQUE,
-      password VARCHAR(255) DEFAULT NULL
-    )
-  `;
-
-  const viewedDiseasesTable = `
-    CREATE TABLE IF NOT EXISTS viewed_diseases (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      user_id INT NOT NULL,
-      disease_name VARCHAR(255) NOT NULL,
-      disease_slug VARCHAR(255) NOT NULL,
-      UNIQUE KEY unique_user_disease (user_id, disease_slug),
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-    )
-  `;
-
-  const viewedArticlesTable = `
-    CREATE TABLE IF NOT EXISTS viewed_articles (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      user_id INT NOT NULL,
-      article_title VARCHAR(255) NOT NULL,
-      article_slug VARCHAR(255) NOT NULL,
-      UNIQUE KEY unique_user_article (user_id, article_slug),
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-    )
-  `;
-
-  db.query(usersTable, err => {
-    if (err) return console.error("❌ users table error:", err);
-
-    db.query(viewedDiseasesTable, err => {
-      if (err) return console.error("❌ viewed_diseases table error:", err);
-
-      db.query(viewedArticlesTable, err => {
-        if (err) return console.error("❌ viewed_articles table error:", err);
-
-        console.log("✅ All tables created successfully");
-      });
-    });
-  });
-}
-
-/* ================================
-           AUTH & USERS
-================================ */
 app.post('/users', (req, res) => {
   const { name, email, password } = req.body;
 
@@ -107,9 +54,7 @@ app.post("/login", (req, res) => {
   );
 });
 
-/* ================================
-        SAVE VIEWED DISEASE
-================================ */
+
 app.post("/viewed-diseases", (req, res) => {
   const { user_id, disease_name, disease_slug } = req.body;
 
@@ -125,9 +70,7 @@ app.post("/viewed-diseases", (req, res) => {
   );
 });
 
-/* ================================
-        SAVE VIEWED ARTICLE
-================================ */
+
 app.post("/viewed-articles", (req, res) => {
   const { user_id, article_title, article_slug } = req.body;
 
@@ -143,9 +86,7 @@ app.post("/viewed-articles", (req, res) => {
   );
 });
 
-/* ================================
-           USER HISTORY
-================================ */
+
 app.get("/users/:id/history", (req, res) => {
   const userId = req.params.id;
 
