@@ -179,35 +179,24 @@ app.get('/users/:id', (req, res) => {
     );
 });
 
-// ================================
-// SAVE VIEWED DISEASE
-// ================================
 app.post("/viewed-diseases", (req, res) => {
-  const { user_id, disease_name } = req.body;
+  const { user_id, disease_slug } = req.body;
 
-  if (!user_id || !disease_name) {
+  if (!user_id || !disease_slug) {
     return res.status(400).json({ message: "Data tidak lengkap" });
   }
 
   db.query(
-    `INSERT IGNORE INTO viewed_diseases (user_id, disease_name)
+    `INSERT IGNORE INTO viewed_diseases (user_id, disease_slug)
      VALUES (?, ?)`,
-    [user_id, disease_name.trim()],
-    (err, result) => {
-      if (err) {
-        console.error("SAVE DISEASE ERROR:", err);
-        return res.status(500).json(err);
-      }
-
+    [user_id, disease_slug],
+    (err) => {
+      if (err) return res.status(500).json(err);
       res.json({ success: true });
     }
   );
 });
 
-
-// ================================
-// SAVE VIEWED ARTICLE
-// ================================
 app.post("/viewed-articles", (req, res) => {
   const { user_id, article_title } = req.body;
 
