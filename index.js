@@ -218,7 +218,7 @@ app.get("/users/:id/history", (req, res) => {
   const userId = req.params.id;
 
   const diseasesQuery =
-    "SELECT disease_name FROM viewed_diseases WHERE user_id = ?";
+    "SELECT disease_name, disease_slug FROM viewed_diseases WHERE user_id = ?";
   const articlesQuery =
     "SELECT article_title FROM viewed_articles WHERE user_id = ?";
 
