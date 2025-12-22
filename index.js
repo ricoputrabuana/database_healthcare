@@ -18,12 +18,7 @@ const db = mysql.createPool({
   queueLimit: 0
 });
 
-ALTER TABLE viewed_diseases
-ADD COLUMN disease_slug VARCHAR(255);
 
-/* ================================
-        REGISTER (MANUAL)
-================================ */
 app.post('/users', (req, res) => {
     const { name, email, password } = req.body;
 
