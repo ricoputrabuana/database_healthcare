@@ -18,18 +18,6 @@ const db = mysql.createPool({
   queueLimit: 0
 });
 
-const mysqlPromise = require("mysql2/promise");
-
-const migrateDb = mysqlPromise.createPool({
-  host: process.env.MYSQLHOST,
-  user: process.env.MYSQLUSER,
-  password: process.env.MYSQLPASSWORD,
-  database: process.env.MYSQLDATABASE,
-  port: Number(process.env.MYSQLPORT),
-});
-
-
-
 app.post('/users', (req, res) => {
     const { name, email, password } = req.body;
 
@@ -249,47 +237,6 @@ app.get("/users/:id/history", (req, res) => {
       });
     });
   });
-});
-
-app.get("/__migrate_viewed_diseases__", async (req, res) => {
-  try {
-    // 1️⃣ CEK APAKAH KOLOM SUDAH ADA
-    const [columns] = await migrateDb.query(`
-      SHOW COLUMNS FROM viewed_diseases LIKE 'disease_slug'
-    `);
-
-    if (columns.length === 0) {
-      await migrateDb.query(`
-        ALTER TABLE viewed_diseases
-        ADD COLUMN disease_slug VARCHAR(255)
-      `);
-    }
-
-    // 2️⃣ CEK UNIQUE INDEX
-    const [indexes] = await migrateDb.query(`
-      SHOW INDEX FROM viewed_diseases
-      WHERE Key_name = 'uniq_user_disease'
-    `);
-
-    if (indexes.length === 0) {
-      await migrateDb.query(`
-        ALTER TABLE viewed_diseases
-        ADD UNIQUE KEY uniq_user_disease (user_id, disease_slug)
-      `);
-    }
-
-    res.json({
-      success: true,
-      message: "Migration checked & completed safely"
-    });
-
-  } catch (err) {
-    console.error("MIGRATION ERROR:", err);
-    res.status(500).json({
-      error: err.message,
-      sqlMessage: err.sqlMessage,
-    });
-  }
 });
 
 const port = process.env.PORT || 8080;
