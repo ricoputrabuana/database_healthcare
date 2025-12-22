@@ -18,6 +18,17 @@ const db = mysql.createPool({
   queueLimit: 0
 });
 
+const mysql = require("mysql2");
+
+const db = mysql.createConnection({
+  host: process.env.MYSQLHOST,
+  user: process.env.MYSQLUSER,
+  password: process.env.MYSQLPASSWORD,
+  database: process.env.MYSQLDATABASE,
+  port: process.env.MYSQLPORT,
+});
+
+
 app.post('/users', (req, res) => {
     const { name, email, password } = req.body;
 
@@ -238,6 +249,64 @@ app.get("/users/:id/history", (req, res) => {
     });
   });
 });
+
+function createTables() {
+  const usersTable = `
+    CREATE TABLE IF NOT EXISTS users (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      email VARCHAR(255) NOT NULL UNIQUE,
+      password VARCHAR(255) DEFAULT NULL
+    )
+  `;
+
+  const viewedDiseasesTable = `
+    CREATE TABLE IF NOT EXISTS viewed_diseases (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      user_id INT NOT NULL,
+      disease_name VARCHAR(255) NOT NULL,
+      disease_slug VARCHAR(255) NOT NULL,
+
+      UNIQUE KEY unique_user_disease (user_id, disease_slug),
+
+      CONSTRAINT fk_viewed_diseases_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE
+    )
+  `;
+
+  const viewedArticlesTable = `
+    CREATE TABLE IF NOT EXISTS viewed_articles (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      user_id INT NOT NULL,
+      article_title VARCHAR(255) NOT NULL,
+      article_slug VARCHAR(255) NOT NULL,
+
+      UNIQUE KEY unique_user_article (user_id, article_slug),
+
+      CONSTRAINT fk_viewed_articles_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE
+    )
+  `;
+
+  db.query(usersTable, (err) => {
+    if (err) return console.error("❌ users table error:", err);
+
+    db.query(viewedDiseasesTable, (err) => {
+      if (err) return console.error("❌ viewed_diseases table error:", err);
+
+      db.query(viewedArticlesTable, (err) => {
+        if (err) return console.error("❌ viewed_articles table error:", err);
+
+        console.log("✅ All tables created successfully");
+      });
+    });
+  });
+}
+
 
 const port = process.env.PORT || 8080;
 
