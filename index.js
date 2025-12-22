@@ -239,6 +239,31 @@ app.get("/users/:id/history", (req, res) => {
   });
 });
 
+app.get("/content/:slug", (req, res) => {
+  const slug = req.params.slug;
+
+  db.query(
+    "SELECT * FROM diseases WHERE slug = ?",
+    [slug],
+    (err, result) => {
+      if (err) return res.status(500).json(err);
+      if (result.length === 0)
+        return res.status(404).json({ message: "Konten tidak ditemukan" });
+
+      res.json({
+        data: {
+          title: result[0].name,
+          content: JSON.parse(result[0].content),
+          img: result[0].img,
+          date: result[0].date,
+          doctor: JSON.parse(result[0].doctor),
+        },
+      });
+    }
+  );
+});
+
+
 const port = process.env.PORT || 8080;
 
 app.listen(port, "0.0.0.0", () => {
