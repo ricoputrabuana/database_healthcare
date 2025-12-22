@@ -230,7 +230,10 @@ app.get("/users/:id/history", (req, res) => {
       if (err2) return res.status(500).json(err2);
 
       res.json({
-        diseases: diseases.map(d => d.disease_name),
+        diseases: diseases.map(d => ({
+          name: d.disease_name,
+          slug: d.disease_slug
+        })),
         articles: articles.map(a => a.article_title),
       });
     });
