@@ -154,9 +154,6 @@ app.post("/google_login", (req, res) => {
     );
 });
 
-/* ================================
-           GET USER BY ID
-================================ */
 app.get('/users/:id', (req, res) => {
     db.query(
         "SELECT id, name, email FROM users WHERE id = ?",
@@ -197,9 +194,6 @@ app.post("/viewed-diseases", (req, res) => {
   );
 });
 
-// ================================
-// SAVE VIEWED ARTICLE
-// ================================
 app.post("/viewed-articles", (req, res) => {
   const { user_id, article_title } = req.body;
 
@@ -246,23 +240,51 @@ app.get("/content/:slug", (req, res) => {
     "SELECT * FROM diseases WHERE slug = ?",
     [slug],
     (err, result) => {
-      if (err) return res.status(500).json(err);
-      if (result.length === 0)
+      if (err) {
+        console.error("DB ERROR:", err);
+        return res.status(500).json({ message: "Database error" });
+      }
+
+      if (!result.length) {
         return res.status(404).json({ message: "Konten tidak ditemukan" });
+      }
+
+      const row = result[0];
+
+      let content = row.content;
+      let doctor = row.doctor;
+
+      // ===== SAFE PARSE CONTENT =====
+      try {
+        if (typeof content === "string" && content.trim().startsWith("[")) {
+          content = JSON.parse(content);
+        }
+      } catch (e) {
+        console.error("CONTENT PARSE ERROR:", e);
+      }
+
+      // ===== SAFE PARSE DOCTOR =====
+      try {
+        if (typeof doctor === "string" && doctor.trim().startsWith("{")) {
+          doctor = JSON.parse(doctor);
+        }
+      } catch (e) {
+        console.error("DOCTOR PARSE ERROR:", e);
+        doctor = null;
+      }
 
       res.json({
         data: {
-          title: result[0].name,
-          content: JSON.parse(result[0].content),
-          img: result[0].img,
-          date: result[0].date,
-          doctor: JSON.parse(result[0].doctor),
+          title: row.name,
+          content,
+          img: row.img ?? null,
+          date: row.date ?? null,
+          doctor,
         },
       });
     }
   );
 });
-
 
 const port = process.env.PORT || 8080;
 
