@@ -240,29 +240,20 @@ app.get("/users/:id/history", (req, res) => {
   });
 });
 
-app.get("/__migrate_viewed_diseases__", async (req, res) => {
-  try {
-    // TAMBAH COLUMN JIKA BELUM ADA
-    await db.query(`
-      ALTER TABLE viewed_diseases
-      ADD COLUMN IF NOT EXISTS disease_slug VARCHAR(255)
-    `);
+db.query(`
+  ALTER TABLE viewed_diseases
+  ADD COLUMN disease_slug VARCHAR(255)
+`, (err) => {
+  if (err) return res.status(500).json(err);
 
-    // TAMBAH UNIQUE CONSTRAINT
-    await db.query(`
-      ALTER TABLE viewed_diseases
-      ADD UNIQUE KEY uniq_user_disease (user_id, disease_slug)
-    `);
-
-    res.json({ success: true, message: "Migration success" });
-  } catch (err) {
-    res.status(500).json({
-      error: err.message,
-      sqlMessage: err.sqlMessage,
-    });
-  }
+  db.query(`
+    ALTER TABLE viewed_diseases
+    ADD UNIQUE KEY uniq_user_disease (user_id, disease_slug)
+  `, (err2) => {
+    if (err2) return res.status(500).json(err2);
+    res.json({ success: true });
+  });
 });
-
 
 const port = process.env.PORT || 8080;
 
