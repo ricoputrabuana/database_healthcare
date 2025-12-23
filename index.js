@@ -195,26 +195,40 @@ app.post("/viewed-diseases", (req, res) => {
 });
 
 app.post("/viewed-articles", (req, res) => {
-  const { user_id, article_title } = req.body;
+  const { user_id, article_title, article_slug } = req.body;
+
+  if (!user_id || !article_title || !article_slug) {
+    return res.status(400).json({ message: "Data tidak lengkap" });
+  }
 
   db.query(
-    `INSERT IGNORE INTO viewed_articles (user_id, article_title)
-     VALUES (?, ?)`,
-    [user_id, article_title],
+    `INSERT IGNORE INTO viewed_articles 
+     (user_id, article_title, article_slug)
+     VALUES (?, ?, ?)`,
+    [
+      user_id,
+      article_title.trim(),
+      article_slug.trim()
+    ],
     (err) => {
-      if (err) return res.status(500).json(err);
+      if (err) {
+        console.error("SAVE ARTICLE ERROR:", err);
+        return res.status(500).json(err);
+      }
       res.json({ success: true });
     }
   );
 });
+
 
 app.get("/users/:id/history", (req, res) => {
   const userId = req.params.id;
 
   const diseasesQuery =
     "SELECT disease_name, disease_slug FROM viewed_diseases WHERE user_id = ?";
+
   const articlesQuery =
-    "SELECT article_title FROM viewed_articles WHERE user_id = ?";
+    "SELECT article_title, article_slug FROM viewed_articles WHERE user_id = ?";
 
   db.query(diseasesQuery, [userId], (err, diseases) => {
     if (err) return res.status(500).json(err);
@@ -227,63 +241,13 @@ app.get("/users/:id/history", (req, res) => {
           name: d.disease_name,
           slug: d.disease_slug
         })),
-        articles: articles.map(a => a.article_title),
+        articles: articles.map(a => ({
+          title: a.article_title,
+          slug: a.article_slug
+        })),
       });
     });
   });
-});
-
-app.get("/content/:slug", (req, res) => {
-  const slug = req.params.slug;
-
-  db.query(
-    "SELECT * FROM diseases WHERE slug = ?",
-    [slug],
-    (err, result) => {
-      if (err) {
-        console.error("DB ERROR:", err);
-        return res.status(500).json({ message: "Database error" });
-      }
-
-      if (!result.length) {
-        return res.status(404).json({ message: "Konten tidak ditemukan" });
-      }
-
-      const row = result[0];
-
-      let content = row.content;
-      let doctor = row.doctor;
-
-      // ===== SAFE PARSE CONTENT =====
-      try {
-        if (typeof content === "string" && content.trim().startsWith("[")) {
-          content = JSON.parse(content);
-        }
-      } catch (e) {
-        console.error("CONTENT PARSE ERROR:", e);
-      }
-
-      // ===== SAFE PARSE DOCTOR =====
-      try {
-        if (typeof doctor === "string" && doctor.trim().startsWith("{")) {
-          doctor = JSON.parse(doctor);
-        }
-      } catch (e) {
-        console.error("DOCTOR PARSE ERROR:", e);
-        doctor = null;
-      }
-
-      res.json({
-        data: {
-          title: row.name,
-          content,
-          img: row.img ?? null,
-          date: row.date ?? null,
-          doctor,
-        },
-      });
-    }
-  );
 });
 
 const port = process.env.PORT || 8080;
